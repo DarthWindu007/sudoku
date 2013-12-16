@@ -36,17 +36,52 @@ class Puzzle(object):
 			return self.grid[i:i+3,3:6]
 		else:
 			return self.grid[i:i+3,6:9]
-
 	def get_square(self,i,j):
 		if(i<3):
-			return self.get_square_helper(0,j)
+			return self.get_square_helper(0,j).flatten()
 		elif(i<6):
-			return self.get_square_helper(3,j)
+			return self.get_square_helper(3,j).flatten()
 		else:
-			return self.get_square_helper(6,j)
+			return self.get_square_helper(6,j).flatten()
+	
+	def get_possible_values_helper(self,poss,vals):
+		for val in vals:
+			if val in poss:
+				poss.remove(val)
+
+	def get_possible_values(self,i,j):
+		if(self.grid[i,j]!=0):
+			raise "value already set!"
+		poss = [1,2,3,4,5,6,7,8,9]
+		vals = self.get_col(j).tolist()+self.get_row(i).tolist()+self.get_square(i,j).tolist()
+		self.get_possible_values_helper(poss,vals)
+		return poss
+
+	def get_first_unknown(self):
+		x = np.where(self.grid == 0)
+		#print (x[0][0],x[1][0])
+		return (x[0][0],x[1][0])
+
+	def get_copy(self):
+		copy = Puzzle()
+		copy.grid = np.copy(self.grid)
+		copy.is_solved = self.is_solved
+		copy.num_unknown = self.num_unknown
+		return copy
+	
+	def set_value(self,i,j,val):
+		self.grid[i,j]=val
+		self.update_num_unknowns()
+	def get_value(self,i,j):
+		return self.grid[i,j]
+
+	def __str__(self):
+		return self.grid.__str__()
 
 
-filename = "input.txt"
+		
+
+filename = "1.txt"
 
 line = open(filename)
 
@@ -57,9 +92,38 @@ lines = line.readlines()
 
 for i,line in enumerate(lines):
 	puzzle.set_row(line.split(),i)
-print puzzle.grid
-print puzzle.get_square(1,1)
-print puzzle.get_square(1,2)
-print puzzle.get_square(5,5)
 
-print puzzle.num_unknown
+possible_dic = {}
+current = puzzle.get_copy()
+previous_stack = [None,current]
+
+print current
+while not current.is_solved:
+	(i,j) = puzzle.get_first_unknown()
+	#print i,j
+
+	print current
+	print "///////////////"
+	if((i,j) not in possible_dic):
+		possible = puzzle.get_possible_values(i,j)
+	else:
+		possible = possible_dic[(i,j)]
+
+	if(len(possible)==0):
+		current=previous_stack.pop()
+		puzzle = current
+		if((i,j) in possible_dic):
+			del possible_dic[(i,j)]
+		if(current==None):
+			raise "no solution found"
+		continue
+	v = possible[0]
+	puzzle.set_value(i,j,v)
+	possible.remove(v)
+	possible_dic[(i,j)] = possible
+	previous_stack.append(current)
+	current=puzzle.get_copy()
+
+print puzzle
+
+
