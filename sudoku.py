@@ -81,7 +81,7 @@ class Puzzle(object):
 
 		
 
-filename = "1.txt"
+filename = "2.txt"
 
 line = open(filename)
 
@@ -89,41 +89,65 @@ puzzle = Puzzle()
 num_puzzles = line.readline().split()
 
 lines = line.readlines()
+# puzzles = [puzzle]*num_puzzles
 
 for i,line in enumerate(lines):
 	puzzle.set_row(line.split(),i)
 
-possible_dic = {}
-current = puzzle.get_copy()
-previous_stack = [None,current]
+solutions = []
+def solve_puzzle(puz, sol):
+	#print puz
+	if puz.is_solved:
+		print "Found Solution"
+		sol.append(puz)
+		return
+	(i,j) = puz.get_first_unknown()
+	#print puz.num_unknown
+	poss = puz.get_possible_values(i,j)
+	for val in poss:
+		puz.set_value(i,j,val)
+		solve_puzzle(puz.get_copy(), sol)
 
-print current
-while not current.is_solved:
-	(i,j) = puzzle.get_first_unknown()
-	#print i,j
+solve_puzzle(puzzle, solutions)
 
-	print current
-	print "///////////////"
-	if((i,j) not in possible_dic):
-		possible = puzzle.get_possible_values(i,j)
-	else:
-		possible = possible_dic[(i,j)]
+print len(solutions)
+for i,sol in enumerate(solutions):
+	print "solution " + str(i+1)
+	print sol
+	print "********************************************"
 
-	if(len(possible)==0):
-		current=previous_stack.pop()
-		puzzle = current
-		if((i,j) in possible_dic):
-			del possible_dic[(i,j)]
-		if(current==None):
-			raise "no solution found"
-		continue
-	v = possible[0]
-	puzzle.set_value(i,j,v)
-	possible.remove(v)
-	possible_dic[(i,j)] = possible
-	previous_stack.append(current)
-	current=puzzle.get_copy()
 
-print puzzle
+# possible_dic = {}
+# current = puzzle.get_copy()
+# previous_stack = [None,current]
+
+# print current
+# while not current.is_solved:
+# 	(i,j) = puzzle.get_first_unknown()
+# 	#print i,j
+
+# 	print current
+# 	print "///////////////"
+# 	if((i,j) not in possible_dic):
+# 		possible = puzzle.get_possible_values(i,j)
+# 	else:
+# 		possible = possible_dic[(i,j)]
+
+# 	if(len(possible)==0):
+# 		current=previous_stack.pop()
+# 		puzzle = current
+# 		if((i,j) in possible_dic):
+# 			del possible_dic[(i,j)]
+# 		if(current==None):
+# 			raise "no solution found"
+# 		continue
+# 	v = possible[0]
+# 	puzzle.set_value(i,j,v)
+# 	possible.remove(v)
+# 	possible_dic[(i,j)] = possible
+# 	previous_stack.append(current)
+# 	current=puzzle.get_copy()
+
+# print puzzle
 
 
